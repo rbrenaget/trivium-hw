@@ -90,7 +90,7 @@ begin
                     lfsr_c(1 to 111) := t2 & lfsr_c(1 to 110);
                 end loop;
 
-                if (initialization = 'O') then
+                if (initialization = '0') then
                     ready <= '1';
                     zi <= local_vector_zi;
                 end if;
