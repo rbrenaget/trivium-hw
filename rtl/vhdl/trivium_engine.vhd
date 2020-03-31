@@ -68,12 +68,14 @@ begin
             zi <= (others => '0'); 
             ready <= '0';
         elsif (clk'event and clk = '1') then
+
             if (initialization = '1') then
                 lfsr_a := key & (81 to 93 => '0');
                 lfsr_b := iv & (81 to 84 => '0');
                 lfsr_c := (1 to 108 => '0') & "111";
-            elsif (initialization = '1' or generate_keystream = '1') then
+            end if;
 
+            if (initialization = '1' or generate_keystream = '1') then
                 for i in 0 to output_size loop
                     t1 := lfsr_a(66) xor lfsr_a(93);
                     t2 := lfsr_b(69) xor lfsr_b(84);
@@ -93,11 +95,12 @@ begin
                 if (initialization = '0') then
                     ready <= '1';
                     zi <= local_vector_zi;
-                end if;
-                
+                end if;   
+
             elsif (generate_keystream = '0') then
                 ready <= '0';
             end if;
+            
         end if;
     
     end process;
