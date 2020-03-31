@@ -89,6 +89,11 @@ begin
                     lfsr_b(1 to 84) := t1 & lfsr_b(1 to 83);
                     lfsr_c(1 to 111) := t2 & lfsr_c(1 to 110);
                 end loop;
+
+                if (initialization = 'O') then
+                    ready <= '1';
+                    zi <= local_vector_zi;
+                end if;
                 
             elsif (generate_keystream = '0') then
                 ready <= '0';
