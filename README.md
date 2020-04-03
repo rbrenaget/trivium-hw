@@ -26,3 +26,9 @@ $ sudo zypper install gtkwave
 ```bash
 $ pip install cocotb
 ```
+
+### Additionnal Python packages
+
+```bash
+$ pip install pytrivium
+```
