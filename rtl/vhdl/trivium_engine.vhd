@@ -21,7 +21,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity trivium_engine is
     Generic (
-        G_OUTPUT_SIZE : positive := 1
+        G_OUTPUT_SIZE : integer range 1 to 64 := 1
     );
     Port (
         clk : in std_logic;
@@ -38,7 +38,7 @@ end trivium_engine;
 
 architecture Behavioral of trivium_engine is
 
-    constant output_size : positive := G_OUTPUT_SIZE-1;
+    constant output_size : integer range 0 to 63 := G_OUTPUT_SIZE-1;
 
 begin
 
