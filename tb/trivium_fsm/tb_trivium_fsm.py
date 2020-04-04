@@ -23,7 +23,8 @@ def test_trivium_fsm_1(dut):
 
     dut._log.info(f'Current state : S_SLEEP')
     dut.start <= 1
-    dut.n <= BinaryValue(value=1, n_bits=32, bigEndian=False)
+    # Generates 8 blocks of G_OUTPUT_SIZE bits
+    dut.n <= BinaryValue(value=8, n_bits=32, bigEndian=False)
 
     dut._log.info('Current state : S_INIT')
     yield RisingEdge(dut.initialization)
