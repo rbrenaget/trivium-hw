@@ -21,7 +21,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity trivium_engine is
     Generic (
-        G_OUTPUT_SIZE : integer range 1 to 64 := 1
+        G_OUTPUT_SIZE : integer range 1 to 64 := 32
     );
     Port (
         clk : in std_logic;
