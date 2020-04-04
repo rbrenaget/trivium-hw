@@ -60,7 +60,7 @@ def test_trivium_engine(dut):
     # Instantiate a 100MHz clock
     cocotb.fork(Clock(dut.clk, 10, units='ns').start())
 
-    dut._log.info('Starting Trivium test bench...')
+    dut._log.info('Starting Trivium engine test bench...')
 
     # Reset du composant
     dut.rst <= 1
