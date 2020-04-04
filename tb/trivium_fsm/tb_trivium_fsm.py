@@ -29,7 +29,6 @@ def test_trivium_fsm_1(dut):
     dut._log.info('Current state : S_INIT')
     yield RisingEdge(dut.initialization)
     dut.start <= 0
-    # yield FallingEdge(dut.initialization)
 
     dut._log.info('Current state : S_GEN_KEYSTREAM')
     yield RisingEdge(dut.generate_keystream)
