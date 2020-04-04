@@ -1,20 +1,13 @@
 ----------------------------------------------------------------------------------
 -- Engineer: Romain Brenaget
 -- 
--- Create Date: 20.03.2020 22:55:02
--- Design Name: trivium
+-- Create Date: 20.03.2020 
+-- Design Name: 
 -- Module Name: trivium_engine - Behavioral
 -- Project Name: 
 -- Target Devices: 
--- Tool Versions: 
 -- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
+--  
 ----------------------------------------------------------------------------------
 
 
