@@ -1,5 +1,7 @@
 # Trivium - Hardware Implementation
 
+This repository contains a VHDL implementation of Trivium.
+
 ## Tools requirement
 
 I advise you to use a virtualenv for Python packages installations.
