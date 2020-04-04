@@ -62,6 +62,8 @@ begin
                 when S_SLEEP =>
                     -- Sleeping, waiting for a start signal
                     if (start = '1') then
+                        initialization <= '1';
+                        flag_init := '1';
                         current_state <= S_INIT;
                     else
                         cnt <= 0;
@@ -75,27 +77,23 @@ begin
                     when S_INIT =>
                         -- Loads key & iv, and initializes LFSRs
                         if (cnt = (1152-output_size)) then
+                            generate_keystream <= '1';
+                            flag_gen_keystream := '1';
                             initialization <= '0';
                             cnt <= 0;
                             current_state <= S_GEN_KEYSTREAM;
                         elsif (flag_init = '1') then
                             cnt <= cnt + output_size;
-                        else
-                            initialization <= '1';
-                            flag_init := '1';
                         end if;
                         
                     when S_GEN_KEYSTREAM =>
                         -- Generation of the key steram
-                        if (cnt = ((to_integer(n))*output_size)) then
+                        if (cnt = (to_integer(n)*(output_size-1))) then
                             generate_keystream <= '0';
                             terminate <= '1';
                             current_state <= S_SLEEP;
                         elsif (flag_gen_keystream = '1') then
                             cnt <= cnt + output_size;
-                        else
-                            generate_keystream <= '1';
-                            flag_gen_keystream := '1';
                         end if;
 
             end case;
