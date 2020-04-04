@@ -20,28 +20,28 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity trivium_fsm is
     Generic (
-        G_OUTPUT_SIZE : positive := 1
+        G_OUTPUT_SIZE : integer range 1 to 64 := 1
     );
     Port (
         clk : in std_logic;
         rst : in std_logic;
-        n : in positive;
+        n : in unsigned(31 downto 0);
         start : in std_logic;
         terminate : out std_logic;
         initialization : out std_logic;
-        generate_keystream : out std_logic;
+        generate_keystream : out std_logic
     );
 end trivium_fsm;
 
 
 architecture Behavioral of trivium_fsm is
 
-    constant output_size : positive := G_OUTPUT_SIZE;
+    constant output_size : integer range 0 to 63 := G_OUTPUT_SIZE;
 
     type States is (S_SLEEP, S_INIT, S_GEN_KEYSTREAM);
 
     signal current_state : States := S_SLEEP;
-    signal cnt : integr := 0;
+    signal cnt : natural := 0;
 
 begin
 
@@ -87,7 +87,7 @@ begin
                         
                     when S_GEN_KEYSTREAM =>
                         -- Generation of the key steram
-                        if (cnt = ((n-1)*output_size) then
+                        if (cnt = ((to_integer(n))*output_size)) then
                             generate_keystream <= '0';
                             terminate <= '1';
                             current_state <= S_SLEEP;
@@ -97,24 +97,9 @@ begin
                             generate_keystream <= '1';
                             flag_gen_keystream := '1';
                         end if;
-                        -- if (pause = '1') then
-                        --     generate_keystream <= '0';
-                        --     flag_pause := '1';
-                        --     current_state <= S_SLEEP;
-                        -- else
-                        --     generate_keystream <= '1';
-                        -- end if;
 
-                    -- when S_END =>
-                    --     -- Terminate key stream generation
-                    --     if (start = '0') then
-                    --         current_state <= S_SLEEP;
-                    --     else
-                    --         cnt <= 0;
-                    --         terminate <= '1';
-
-                    --     end if;
             end case;
+
         end if;
     
     end process;
