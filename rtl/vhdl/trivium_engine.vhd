@@ -38,7 +38,7 @@ end trivium_engine;
 
 architecture Behavioral of trivium_engine is
 
-    constant output_size : integer := G_OUTPUT_SIZE-1;
+    constant output_size : positive := G_OUTPUT_SIZE-1;
 
 begin
 
