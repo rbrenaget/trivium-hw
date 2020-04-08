@@ -8,7 +8,7 @@ from cocotb.result import TestError
 
 
 @cocotb.test()
-def test_trivium_fsm_1(dut):
+def test_trivium_fsm(dut):
     """Ttivium FSM Test Bench
     :param dut: device under test
     """
@@ -21,10 +21,10 @@ def test_trivium_fsm_1(dut):
     yield Timer(10, units="ns")
     dut.rst <= 0
 
-    dut._log.info(f'Current state : S_SLEEP')
-    dut.start <= 1
+    dut._log.info('Current state : S_SLEEP')
     # Generates 8 blocks of G_OUTPUT_SIZE bits
     dut.n <= BinaryValue(value=8, n_bits=32, bigEndian=False)
+    dut.start <= 1
 
     dut._log.info('Current state : S_INIT')
     yield RisingEdge(dut.initialization)
@@ -32,6 +32,21 @@ def test_trivium_fsm_1(dut):
 
     dut._log.info('Current state : S_GEN_KEYSTREAM')
     yield RisingEdge(dut.generate_keystream)
+
+
+    yield RisingEdge(dut.terminate)
+    dut._log.info('Current state : S_SLEEP')
+    
+
+    yield Timer(200, units='ns')
+
+    dut.start <= 1
+    # Generates 8 blocks of G_OUTPUT_SIZE bits
+    dut.n <= BinaryValue(value=16, n_bits=32, bigEndian=False)
+
+    dut._log.info('Current state : S_GEN_KEYSTREAM')
+    yield RisingEdge(dut.generate_keystream)
+    dut.start <= 0
 
     dut._log.info('Current state : S_SLEEP')
     yield RisingEdge(dut.terminate)
