@@ -58,6 +58,7 @@ begin
             cnt <= 0;
             initialization <= '0';
             generate_keystream <= '0';
+            terminate <= '0';
             flag_init := '0';
             flag_gen_keystream := '0';
             n_bits <= 0;
