@@ -27,9 +27,9 @@ entity trivium_fsm is
         rst : in std_logic;
         n : in unsigned(31 downto 0);
         start : in std_logic;
-        terminate : out std_logic;
         initialization : out std_logic;
-        generate_keystream : out std_logic
+        generate_keystream : out std_logic;
+        terminate : out std_logic
     );
 end trivium_fsm;
 
