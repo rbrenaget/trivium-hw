@@ -33,7 +33,7 @@ package trivium_package is
             generate_keystream : out std_logic;
             terminate : out std_logic
         );
-    end trivium_fsm;
+    end component;
 
     component trivium_engine is
         Generic (
