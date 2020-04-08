@@ -41,7 +41,9 @@ architecture Behavioral of trivium_fsm is
     type States is (S_SLEEP, S_INIT, S_GEN_KEYSTREAM);
 
     signal current_state : States := S_SLEEP;
+
     signal cnt : natural := 0;
+    signal n_bits : natural := 0;
 
 begin
 
@@ -56,22 +58,27 @@ begin
             cnt <= 0;
             initialization <= '0';
             generate_keystream <= '0';
+            flag_init := '0';
+            flag_gen_keystream := '0';
+            n_bits <= 0;
         elsif (clk'event and clk = '1') then
             -- FSM management
             case current_state is 
                 when S_SLEEP =>
                     -- Sleeping, waiting for a start signal
                     if (start = '1') then
-                        initialization <= '1';
-                        flag_init := '1';
-                        current_state <= S_INIT;
-                    else
-                        cnt <= 0;
-                        initialization <= '0';
-                        generate_keystream <= '0';
                         terminate <= '0';
-                        flag_init := '0';
-                        flag_gen_keystream := '0';
+                        n_bits <= (to_integer(n)*(output_size))-output_size;
+                        if (flag_init = '0') then
+                            initialization <= '1';
+                            flag_init := '1';
+                            current_state <= S_INIT;
+                        else
+                            generate_keystream <= '1';
+                            flag_gen_keystream := '1';
+                            cnt <= 0;
+                            current_state <= S_GEN_KEYSTREAM;
+                        end if;
                     end if;
                 
                     when S_INIT =>
@@ -88,14 +95,16 @@ begin
                         
                     when S_GEN_KEYSTREAM =>
                         -- Generation of the key steram
-                        if (cnt = (to_integer(n)*(output_size-1))) then
+                        if (cnt = n_bits) then
                             generate_keystream <= '0';
+                            flag_gen_keystream := '0';
+                            n_bits <= 0;
+                            cnt <= 0;
                             terminate <= '1';
                             current_state <= S_SLEEP;
                         elsif (flag_gen_keystream = '1') then
                             cnt <= cnt + output_size;
                         end if;
-
             end case;
 
         end if;
