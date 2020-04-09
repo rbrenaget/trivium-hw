@@ -47,11 +47,24 @@ architecture Behavioral of top_trivium is
 begin
     
     inst_trivium_fsm : trivium_fsm generic map (G_OUTPUT_SIZE) port map (
-        clk, rst, n, start, s_initialization, s_generate_keystream, terminate
+        clk => clk,
+        rst => rst,
+        n => n,
+        start => start,
+        initialization => s_initialization,
+        generate_keystream => s_generate_keystream,
+        terminate => terminate
     );
     
     inst_trivium_engine : trivium_engine generic map (G_OUTPUT_SIZE) port map (
-        clk, rst, s_initialization, s_generate_keystream, key, iv, ready, keystream
+        clk => clk,
+        rst => rst,
+        initialization => s_initialization,
+        generate_keystream => s_generate_keystream,
+        key => key,
+        iv => iv,
+        ready => ready,
+        zi => keystream
     );
 
 end architecture Behavioral;
