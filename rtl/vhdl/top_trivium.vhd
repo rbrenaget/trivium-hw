@@ -67,6 +67,7 @@ begin
             rst                => TRV_RST,
             initialization     => s_initialization,
             generate_keystream => s_generate_keystream,
+            pause              => TRV_PAUSE,
             key                => TRV_KEY,
             iv                 => TRV_IV,
             ready              => TRV_READY,
