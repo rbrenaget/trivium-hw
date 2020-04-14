@@ -21,10 +21,9 @@ def test_trivium_fsm(dut):
     yield Timer(10, units="ns")
     dut.rst <= 0
 
-    dut._log.info('Current state : S_SLEEP')
-    # Generates 8 blocks of G_OUTPUT_SIZE bits
-    dut.n <= BinaryValue(value=8, n_bits=32, bigEndian=False)
+    dut._log.info('Current state : S_IDLE')
     dut.start <= 1
+    dut.pause <= 0
 
     dut._log.info('Current state : S_INIT')
     yield RisingEdge(dut.initialization)
@@ -33,22 +32,16 @@ def test_trivium_fsm(dut):
     dut._log.info('Current state : S_GEN_KEYSTREAM')
     yield RisingEdge(dut.generate_keystream)
 
+    # Wait 100 ns (generate 10 blocks of keystream)
+    yield Timer(100, units='ns')
 
-    yield RisingEdge(dut.terminate)
-    dut._log.info('Current state : S_SLEEP')
-    
-
+    dut.pause <= 1
+    dut._log.info('Current state : S_PAUSE')
     yield Timer(200, units='ns')
-
-    dut.start <= 1
-    # Generates 8 blocks of G_OUTPUT_SIZE bits
-    dut.n <= BinaryValue(value=16, n_bits=32, bigEndian=False)
+    dut.pause <= 0
 
     dut._log.info('Current state : S_GEN_KEYSTREAM')
-    yield RisingEdge(dut.generate_keystream)
-    dut.start <= 0
+    # Wait 150 ns (generate 15 blocks of keystream)
+    yield Timer(150, units='ns')
 
-    dut._log.info('Current state : S_SLEEP')
-    yield RisingEdge(dut.terminate)
-
-    yield Timer(200, units='ns')
+    yield Timer(500, units='ns')
