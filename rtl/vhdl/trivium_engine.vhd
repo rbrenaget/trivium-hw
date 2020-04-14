@@ -28,7 +28,6 @@ entity trivium_engine is
         rst : in std_logic;
         initialization : in std_logic;
         generate_keystream : in std_logic;
-        pause : in std_logic;
         key : in std_logic_vector(1 to 80);
         iv : in std_logic_vector(1 to 80);
         ready : out std_logic;
@@ -70,11 +69,11 @@ begin
             if (initialization = '1' and loaded = '0') then
                 lfsr_a := key & (81 to 93 => '0');
                 lfsr_b := iv & (81 to 84 => '0');
-                lfsr_c := (1 to 108=> '0') & "111";
+                lfsr_c := (1 to 108 => '0') & "111";
                 loaded := '1';
             end if;
 
-            if ((initialization = '1' or generate_keystream = '1') and loaded = '1' and pause = '0') then
+            if ((initialization = '1' or generate_keystream = '1') and loaded = '1') then
                 
                 for i in output_size downto 0 loop
                     t1 := lfsr_a(66) xor lfsr_a(93);

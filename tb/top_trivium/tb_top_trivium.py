@@ -65,35 +65,45 @@ def test_trivium_fsm(dut):
     dut._log.info('[*] Starting Trivium test bench')
 
     # Instantiate a 100MHz clock
-    cocotb.fork(Clock(dut.clk, 10, units='ns').start())
+    cocotb.fork(Clock(dut.TRV_CLK, 10, units='ns').start())
 
     dut._log.info('\t [*] Start system reset')
-    dut.rst <= 1
+    dut.TRV_RST <= 1
     yield Timer(10, units='ns')
-    dut.rst <= 0
+    dut.TRV_RST <= 0
     dut._log.info('\t [+] System reset finished')
 
-    dut.start <= 1
-    dut.n <= BinaryValue(value=N_BLOCKS, n_bits=32, bigEndian=False)
-    dut.key <= BinaryValue(key_bin)
-    dut.iv <= BinaryValue(iv_bin)
+    dut.TRV_START <= 1
+    dut.TRV_PAUSE <= 0
+    dut.TRV_KEY <= BinaryValue(key_bin)
+    dut.TRV_IV <= BinaryValue(iv_bin)
 
     yield RisingEdge(dut.s_initialization)
     dut._log.info('\t [*] Process initialization')
 
-    dut.start <= 0
+    dut.TRV_START <= 0
 
-    yield RisingEdge(dut.s_generate_keystream)
+    yield RisingEdge(dut.s_fsm_generate_keystream)
     dut._log.info('\t [+] Initialization finished')
     dut._log.info('\t [*] Key stream generation')
 
-    yield RisingEdge(dut.ready)
+    yield RisingEdge(dut.TRV_READY)
     dut._log.info('\t [+] Key stream is available')
 
     zi = []
-    while dut.terminate.value.binstr == '0':
-        yield RisingEdge(dut.clk)
-        zi.insert(0, dut.keystream.value.integer)
+    for _ in range(n):
+        yield RisingEdge(dut.TRV_CLK)
+        zi.insert(0, dut.TRV_KEYSTREAM.value.integer)
+
+    dut.TRV_PAUSE <= 1
+
+    yield Timer(200, units='ns')
+
+    dut.TRV_PAUSE <= 0
+
+    yield Timer(200, units='ns')
+
+    dut.TRV_PAUSE <= 1
     
     zi_bin = ''.join([get_bin(i, OUTPUT_SIZE) for i in zi])
 
