@@ -29,6 +29,7 @@ entity top_trivium is
         TRV_CLK       : in std_logic;
         TRV_RST       : in std_logic;
         TRV_START     : in std_logic;
+        TRV_PAUSE     : in std_logic;
         TRV_KEY       : in std_logic_vector(1 to 80);
         TRV_IV        : in std_logic_vector(1 to 80);
         TRV_READY     : out std_logic;
@@ -52,6 +53,7 @@ begin
             clk                => TRV_CLK,
             rst                => TRV_RST,
             start              => TRV_START,
+            pause              => TRV_PAUSE,
             initialization     => s_initialization,
             generate_keystream => s_generate_keystream
         );
