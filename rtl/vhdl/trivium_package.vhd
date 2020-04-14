@@ -43,6 +43,7 @@ package trivium_package is
             rst : in std_logic;
             initialization : in std_logic;
             generate_keystream : in std_logic;
+            pause : in std_logic;
             key : in std_logic_vector(1 to 80);
             iv : in std_logic_vector(1 to 80);
             ready : out std_logic;
