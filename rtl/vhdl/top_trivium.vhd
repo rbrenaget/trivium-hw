@@ -26,15 +26,13 @@ entity top_trivium is
         G_OUTPUT_SIZE : integer range 1 to 64 := 32
     );
     Port (
-        clk : in std_logic;
-        rst : in std_logic;
-        start : in std_logic;
-        n : in unsigned(31 downto 0);
-        key : in std_logic_vector(1 to 80);
-        iv : in std_logic_vector(1 to 80);
-        ready : out std_logic;
-        terminate : out  std_logic;
-        keystream : out std_logic_vector(G_OUTPUT_SIZE-1 downto 0)
+        TRV_CLK       : in std_logic;
+        TRV_RST       : in std_logic;
+        TRV_START     : in std_logic;
+        TRV_KEY       : in std_logic_vector(1 to 80);
+        TRV_IV        : in std_logic_vector(1 to 80);
+        TRV_READY     : out std_logic;
+        TRV_KEYSTREAM : out std_logic_vector(G_OUTPUT_SIZE-1 downto 0)
     );
 end entity;
 
@@ -46,25 +44,23 @@ architecture Behavioral of top_trivium is
 
 begin
     
-    inst_trivium_fsm : trivium_fsm generic map (G_OUTPUT_SIZE) port map (
-        clk => clk,
-        rst => rst,
-        n => n,
-        start => start,
+    trivium_fsm_inst : trivium_fsm generic map (G_OUTPUT_SIZE) port map (
+        clk => TRV_CLK,
+        rst => TRV_RST,
+        start => TRV_START,
         initialization => s_initialization,
-        generate_keystream => s_generate_keystream,
-        terminate => terminate
+        generate_keystream => s_generate_keystream
     );
     
-    inst_trivium_engine : trivium_engine generic map (G_OUTPUT_SIZE) port map (
-        clk => clk,
-        rst => rst,
+    trivium_engine_inst : trivium_engine generic map (G_OUTPUT_SIZE) port map (
+        clk => TRV_CLK,
+        rst => TRV_RST,
         initialization => s_initialization,
         generate_keystream => s_generate_keystream,
-        key => key,
-        iv => iv,
-        ready => ready,
-        zi => keystream
+        key => TRV_KEY,
+        iv => TRV_IV,
+        ready => TRV_READY,
+        zi => TRV_KEYSTREAM
     );
 
 end architecture Behavioral;
