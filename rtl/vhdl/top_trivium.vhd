@@ -39,28 +39,36 @@ end entity;
 
 architecture Behavioral of top_trivium is
     
-    signal s_initialization : std_logic := '0';
+    signal s_initialization     : std_logic := '0';
     signal s_generate_keystream : std_logic := '0';
 
 begin
     
-    trivium_fsm_inst : trivium_fsm generic map (G_OUTPUT_SIZE) port map (
-        clk => TRV_CLK,
-        rst => TRV_RST,
-        start => TRV_START,
-        initialization => s_initialization,
-        generate_keystream => s_generate_keystream
-    );
+    trivium_fsm_inst : trivium_fsm 
+        generic map (
+            G_OUTPUT_SIZE => G_OUTPUT_SIZE
+        )
+        port map (
+            clk                => TRV_CLK,
+            rst                => TRV_RST,
+            start              => TRV_START,
+            initialization     => s_initialization,
+            generate_keystream => s_generate_keystream
+        );
     
-    trivium_engine_inst : trivium_engine generic map (G_OUTPUT_SIZE) port map (
-        clk => TRV_CLK,
-        rst => TRV_RST,
-        initialization => s_initialization,
-        generate_keystream => s_generate_keystream,
-        key => TRV_KEY,
-        iv => TRV_IV,
-        ready => TRV_READY,
-        zi => TRV_KEYSTREAM
-    );
+    trivium_engine_inst : trivium_engine 
+        generic map (
+            G_OUTPUT_SIZE => G_OUTPUT_SIZE
+        )
+        port map (
+            clk                => TRV_CLK,
+            rst                => TRV_RST,
+            initialization     => s_initialization,
+            generate_keystream => s_generate_keystream,
+            key                => TRV_KEY,
+            iv                 => TRV_IV,
+            ready              => TRV_READY,
+            zi                 => TRV_KEYSTREAM
+        );
 
 end architecture Behavioral;
