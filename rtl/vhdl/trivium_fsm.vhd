@@ -45,7 +45,9 @@ architecture Behavioral of trivium_fsm is
 begin
 
     process (clk, rst)
+
         variable flag_init : std_logic := '0';
+
     begin
 
         if (rst = '1') then
@@ -95,6 +97,9 @@ begin
                         generate_keystream <= '1';
                         current_state <= S_GEN_KEYSTREAM;
                     end if;
+                    
+            end case;
+
         end if;
 
     end process;
