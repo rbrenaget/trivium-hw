@@ -40,9 +40,10 @@ end entity;
 
 architecture Behavioral of top_trivium is
     
-    signal s_initialization     : std_logic := '0';
+    signal s_initialization : std_logic := '0';
     signal s_fsm_generate_keystream : std_logic := '0';
     signal s_engine_generate_keystream : std_logic := '0';
+    signal s_engine_ready : std_logic := '0';
 
 begin
     
@@ -70,11 +71,13 @@ begin
             generate_keystream => s_engine_generate_keystream,
             key                => TRV_KEY,
             iv                 => TRV_IV,
-            ready              => TRV_READY,
+            ready              => s_engine_ready,
             zi                 => TRV_KEYSTREAM
         );
 
         s_engine_generate_keystream <= '0' when (TRV_PAUSE = '1' or s_fsm_generate_keystream = '0') else 
                                        '1' when (TRV_PAUSE = '0' and s_fsm_generate_keystream = '1');
+
+        TRV_READY <= '1' when (s_engine_ready = '1' and TRV_PAUSE = '0') else '0';
 
 end architecture Behavioral;
