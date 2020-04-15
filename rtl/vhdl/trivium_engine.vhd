@@ -31,7 +31,7 @@ entity trivium_engine is
         key : in std_logic_vector(1 to 80);
         iv : in std_logic_vector(1 to 80);
         ready : out std_logic;
-        zi : out std_logic_vector(0 to G_OUTPUT_SIZE-1)
+        zi : out std_logic_vector(G_OUTPUT_SIZE-1 downto 0)
     );
 end trivium_engine;
 
@@ -51,7 +51,7 @@ begin
         variable t1 : std_logic := '0';
         variable t2 : std_logic := '0';
         variable t3 : std_logic := '0';
-        variable local_vector_zi : std_logic_vector(0 to output_size) := (others => '0');
+        variable local_vector_zi : std_logic_vector(output_size downto 0) := (others => '0');
         
     begin
     
@@ -75,7 +75,7 @@ begin
 
             if ((initialization = '1' or generate_keystream = '1') and loaded = '1') then
                 
-                for i in output_size downto 0 loop
+                for i in 0 to output_size loop
                     t1 := lfsr_a(66) xor lfsr_a(93);
                     t2 := lfsr_b(69) xor lfsr_b(84);
                     t3 := lfsr_c(66) xor lfsr_c(111);
