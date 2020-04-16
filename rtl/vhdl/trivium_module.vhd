@@ -60,16 +60,62 @@ architecture implementation of trivium_module is
 
     constant output_size : integer range 1 to 64 := C_OUTPUT_SIZE;
 
+    type state is (S_IDLE, S_INIT, S_GENERATE, S_INTERRUPT, S_STOP);
+
+    signal current_state : state := S_IDLE;
     signal cnt : natural := 0;
-    signal started : std_logic := '0';
     signal loaded : std_logic := '0';
     signal initialized : std_logic := '0';
-    signal interrupted : std_logic := '0';
-    signal stopped : std_logic := '0';
+    signal ready : std_logic := '0';
+    signal output : std_logic_vector(C_OUTPUT_SIZE-1 downto 0);
 
 begin
 
-    process (TRV_CLK, TRV_RST, TRV_START, TRV_INTERRUPT, TRV_STOP) is
+    TRV_READY <= ready;
+    TRV_KEYSTREAM <= output;
+
+    -- ready <= '0' when (current_state = S_INTERRUPT or current_state = S_STOP) else
+    --          '1' when (current_state = S_GENERATE);
+
+    process (TRV_CLK) is
+    begin
+        if (rising_edge(TRV_CLK)) then
+            if (TRV_RST = '1') then
+                current_state <= S_IDLE;
+                cnt <= 0;
+            else
+                case (current_state) is
+                    when S_IDLE =>
+                        if (TRV_START = '1' and TRV_INTERRUPT = '0' and TRV_STOP = '0') then
+                            current_state <= S_INIT;
+                        end if;
+                    when S_INIT =>
+                        if (cnt = (1152-output_size)) then
+                            current_state <= S_GENERATE;
+                            cnt <= 0;
+                            initialized <= '1';
+                        else
+                            cnt <= cnt + output_size;
+                        end if;
+                    when S_GENERATE =>
+                        if (TRV_INTERRUPT = '1') then
+                            current_state <= S_INTERRUPT;
+                        end if;
+                        if (TRV_STOP = '1') then
+                            current_state <= S_STOP;
+                        end if;
+                    when S_INTERRUPT =>
+                        if (TRV_START = '1' and TRV_INTERRUPT = '0' and TRV_STOP = '0') then
+                            current_state <= S_GENERATE;
+                        end if;
+                    when S_STOP =>
+                        current_state <= S_IDLE;
+                end case;
+            end if;
+        end if;
+    end process;
+
+    process (TRV_CLK) is
         variable lfsr_a : std_logic_vector(92 downto 0) := (others => '0');
         variable lfsr_b : std_logic_vector(83 downto 0) := (others => '0');
         variable lfsr_c : std_logic_vector(110 downto 0) := (others => '0');
@@ -78,79 +124,49 @@ begin
         variable t3 : std_logic := '0';
         variable zi :  std_logic_vector(C_OUTPUT_SIZE-1 downto 0);
     begin
-
-        if (TRV_START = '1') then
-            started <= '1';
-        end if;
-
-        if (TRV_INTERRUPT = '1') then
-            interrupted <= '1';
-        else
-            interrupted <= '0';
-        end if;
-
-        if (TRV_STOP = '1') then
-            stopped <= '1';
-            started <= '0';
-            loaded <= '0';
-            initialized <= '0';
-        end if;
-
-        if (rising_edge(TRV_RST)) then
-            TRV_READY <= '0';
-            lfsr_a := (others => '0');
-            lfsr_b := (others => '0');
-            lfsr_c := (others => '0');
-            loaded <= '0';
-            initialized <= '0';
-            cnt <= 0;
-        elsif (rising_edge(TRV_CLK)) then
-
-            if (started = '1' and loaded = '0') then
-                lfsr_a := (92 downto 80 => '0') & swap_endianness(TRV_KEY);
-                lfsr_b := (83 downto 80 => '0') & swap_endianness(TRV_IV);
-                lfsr_c := "111" & (107 downto 0 => '0');
-                loaded <= '1';
-            end if;
-
-            if (interrupted = '1' or stopped = '1') then
-                TRV_READY <= '0';
-            end if;
-
-            if (started = '1' and loaded = '1' and interrupted = '0') then
-
-                if (cnt = (1152-output_size) or initialized = '1') then
-                    initialized <= '1';
-                    cnt <= 0;
-                else
-                    cnt <= cnt + output_size;
+        if (rising_edge(TRV_CLK)) then
+            if (TRV_RST = '1' or current_state = S_IDLE or current_state = S_STOP) then
+                lfsr_a := (others => '0');
+                lfsr_b := (others => '0');
+                lfsr_c := (others => '0');
+                loaded <= '0';
+                ready <= '0';
+            else
+                if (current_state = S_INIT and loaded = '0') then
+                    lfsr_a := (92 downto 80 => '0') & swap_endianness(TRV_KEY);
+                    lfsr_b := (83 downto 80 => '0') & swap_endianness(TRV_IV);
+                    lfsr_c := "111" & (107 downto 0 => '0');
+                    loaded <= '1';
                 end if;
 
-                for i in 0 to output_size-1 loop
-                    t1 := lfsr_a(65) xor lfsr_a(92);
-                    t2 := lfsr_b(68) xor lfsr_b(83);
-                    t3 := lfsr_c(65) xor lfsr_c(110);
-
-                    zi(i) := t1 xor t2 xor t3;
-
-                    t1 := t1 xor (lfsr_a(90) and lfsr_a(91)) xor lfsr_b(77);
-                    t2 := t2 xor (lfsr_b(81) and lfsr_b(82)) xor lfsr_c(86);
-                    t3 := t3 xor (lfsr_c(108) and lfsr_c(109)) xor lfsr_a(68);
-                    
-                    lfsr_a(92 downto 0) := lfsr_a(91 downto 0) & t3;
-                    lfsr_b(83 downto 0) := lfsr_b(82 downto 0) & t1;
-                    lfsr_c(110 downto 0) := lfsr_c(109 downto 0) & t2;
-                end loop;
-
-                if (initialized = '1') then
-                    TRV_READY <= '1';
-                    TRV_KEYSTREAM <= zi;
+                if (current_state = S_INIT or current_state = S_GENERATE) then
+                    for i in 0 to output_size-1 loop
+                        t1 := lfsr_a(65) xor lfsr_a(92);
+                        t2 := lfsr_b(68) xor lfsr_b(83);
+                        t3 := lfsr_c(65) xor lfsr_c(110);
+    
+                        zi(i) := t1 xor t2 xor t3;
+    
+                        t1 := t1 xor (lfsr_a(90) and lfsr_a(91)) xor lfsr_b(77);
+                        t2 := t2 xor (lfsr_b(81) and lfsr_b(82)) xor lfsr_c(86);
+                        t3 := t3 xor (lfsr_c(108) and lfsr_c(109)) xor lfsr_a(68);
+                        
+                        lfsr_a(92 downto 0) := lfsr_a(91 downto 0) & t3;
+                        lfsr_b(83 downto 0) := lfsr_b(82 downto 0) & t1;
+                        lfsr_c(110 downto 0) := lfsr_c(109 downto 0) & t2;
+                    end loop;
                 end if;
 
+                if (current_state = S_GENERATE) then
+                    output <= zi;
+                    ready <= '1';
+                end if;
+
+                if (current_state = S_INTERRUPT) then
+                    ready <= '0';
+                end if;
             end if;
-
         end if;
-
     end process;
 
 end architecture implementation;

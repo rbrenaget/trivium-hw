@@ -83,12 +83,13 @@ def test_trivium_module(dut):
     dut._log.info('\t [*] Process key & iv loading')
     yield RisingEdge(dut.loaded)
     dut._log.info('\t [+] Loaded')
+    dut.TRV_START <= 0
 
     dut._log.info('\t [*] Process initialization')
     yield RisingEdge(dut.initialized)
     dut._log.info('\t [+] Initialized')
 
-    yield Timer(93, units='ns')
+    yield Timer(100, units='ns')
 
     dut.TRV_INTERRUPT <= 1
 
