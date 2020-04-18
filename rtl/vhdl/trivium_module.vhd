@@ -23,16 +23,18 @@ entity trivium_module is
         C_BLOCK_SIZE : integer range 1 to 64 := 32
     );
     port (
-        TRV_CLK       : in std_logic;
-        TRV_RST       : in std_logic;
-        TRV_START     : in std_logic;
-        TRV_INTERRUPT : in std_logic;
-        TRV_N_BLOCKS  : in std_logic_vector(31 downto 0);
-        TRV_KEY       : in std_logic_vector(79 downto 0);
-        TRV_IV        : in std_logic_vector(79 downto 0);
-        TRV_READY     : out std_logic;
-        TRV_DONE      : out std_logic;
-        TRV_KEYSTREAM : out std_logic_vector(C_BLOCK_SIZE-1 downto 0)
+        TRV_CLK        : in std_logic;
+        TRV_RST        : in std_logic;
+        TRV_INIT_START : in std_logic;
+        TRV_START      : in std_logic;
+        TRV_INTERRUPT  : in std_logic;
+        TRV_N_BLOCKS   : in std_logic_vector(31 downto 0);
+        TRV_KEY        : in std_logic_vector(79 downto 0);
+        TRV_IV         : in std_logic_vector(79 downto 0);
+        TRV_INIT_DONE  : out std_logic;
+        TRV_READY      : out std_logic;
+        TRV_DONE       : out std_logic;
+        TRV_KEYSTREAM  : out std_logic_vector(C_BLOCK_SIZE-1 downto 0)
     );
 end entity;
 
@@ -67,6 +69,7 @@ architecture implementation of trivium_module is
     signal cnt : natural := 0;
     signal load : std_logic := '0';
     signal loaded : std_logic := '0';
+    signal initialized : std_logic := '0';
     signal run_engine : std_logic := '0';
     signal ready : std_logic := '0';
     signal delay_ready : std_logic := '0';
@@ -75,6 +78,7 @@ architecture implementation of trivium_module is
 
 begin
 
+    TRV_INIT_DONE <= initialized;
     TRV_READY <= delay_ready when (TRV_INTERRUPT = '0') else ready;
     TRV_KEYSTREAM <= output;
     TRV_DONE <= done;
@@ -90,18 +94,23 @@ begin
         if (rising_edge(TRV_CLK)) then
             if (TRV_RST = '1') then
                 current_state <= S_IDLE;
+                initialized <= '0';
                 cnt <= 0;
                 n_bits := 0;
             else
                 case (current_state) is
                     when S_IDLE =>
-                        if (TRV_START = '1' and TRV_INTERRUPT = '0') then
+                        if (TRV_INIT_START = '1' and TRV_INTERRUPT = '0') then
                             current_state <= S_INIT;
+                        end if;
+                        if (TRV_START = '1' and TRV_INTERRUPT = '0') then
+                            current_state <= S_GENERATE;
                         end if;
                     when S_INIT =>
                         if (cnt = (1152-block_size)) then
-                            current_state <= S_GENERATE;
+                            current_state <= S_IDLE;
                             cnt <= 0;
+                            initialized <= '1';
                             n_bits := block_size * to_integer(unsigned(TRV_N_BLOCKS));
                         else
                             cnt <= cnt + block_size;

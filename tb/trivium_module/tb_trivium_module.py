@@ -74,7 +74,8 @@ def test_trivium_module(dut):
     dut.TRV_RST <= 0
     dut._log.info('\t [+] System reset finished')
 
-    dut.TRV_START <= 1
+    dut.TRV_INIT_START <= 1
+    dut.TRV_START <= 0
     dut.TRV_INTERRUPT <= 0
     dut.TRV_N_BLOCKS <= N_BLOCKS
     dut.TRV_KEY <= BinaryValue(key_bin, bigEndian=True)
@@ -83,11 +84,17 @@ def test_trivium_module(dut):
     dut._log.info('\t [*] Process key & iv loading')
     yield RisingEdge(dut.loaded)
     dut._log.info('\t [+] Loaded')
-    dut.TRV_START <= 0
+    dut.TRV_INIT_START <= 0
 
-    # dut._log.info('\t [*] Process initialization')
-    yield RisingEdge(dut.ready)
-    # dut._log.info('\t [+] Initialized')
+    dut._log.info('\t [*] Process initialization')
+    yield RisingEdge(dut.TRV_INIT_DONE)
+    dut._log.info('\t [+] Initialized')
+
+    yield Timer(50, units='ns')
+
+    dut.TRV_START <= 1
+    yield Timer(10, units='ns')
+    dut.TRV_START <= 0
 
     yield Timer(100, units='ns')
 
