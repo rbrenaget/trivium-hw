@@ -20,7 +20,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity trivium_module is
     generic (
-        C_OUTPUT_SIZE : integer range 1 to 64 := 32
+        C_BLOCK_SIZE : integer range 1 to 64 := 32
     );
     port (
         TRV_CLK       : in std_logic;
@@ -28,10 +28,11 @@ entity trivium_module is
         TRV_START     : in std_logic;
         TRV_INTERRUPT : in std_logic;
         TRV_STOP      : in std_logic;
+        TRV_N_BLOCKS  : in std_logic_vector(31 downto 0);
         TRV_KEY       : in std_logic_vector(79 downto 0);
         TRV_IV        : in std_logic_vector(79 downto 0);
         TRV_READY     : out std_logic;
-        TRV_KEYSTREAM : out std_logic_vector(C_OUTPUT_SIZE-1 downto 0)
+        TRV_KEYSTREAM : out std_logic_vector(C_BLOCK_SIZE-1 downto 0)
     );
 end entity;
 
@@ -58,7 +59,7 @@ architecture implementation of trivium_module is
         return result;
     end;
 
-    constant output_size : integer range 1 to 64 := C_OUTPUT_SIZE;
+    constant block_size : integer range 1 to 64 := C_BLOCK_SIZE;
 
     type state is (S_IDLE, S_INIT, S_GENERATE, S_INTERRUPT, S_STOP);
 
@@ -67,7 +68,7 @@ architecture implementation of trivium_module is
     signal loaded : std_logic := '0';
     signal initialized : std_logic := '0';
     signal ready : std_logic := '0';
-    signal output : std_logic_vector(C_OUTPUT_SIZE-1 downto 0);
+    signal output : std_logic_vector(C_BLOCK_SIZE-1 downto 0);
 
 begin
 
@@ -90,12 +91,12 @@ begin
                             current_state <= S_INIT;
                         end if;
                     when S_INIT =>
-                        if (cnt = (1152-output_size)) then
+                        if (cnt = (1152-block_size)) then
                             current_state <= S_GENERATE;
                             cnt <= 0;
                             initialized <= '1';
                         else
-                            cnt <= cnt + output_size;
+                            cnt <= cnt + block_size;
                         end if;
                     when S_GENERATE =>
                         if (TRV_INTERRUPT = '1') then
@@ -140,7 +141,7 @@ begin
                 end if;
 
                 if (current_state = S_INIT or current_state = S_GENERATE) then
-                    for i in 0 to output_size-1 loop
+                    for i in 0 to block_size-1 loop
                         t1 := lfsr_a(65) xor lfsr_a(92);
                         t2 := lfsr_b(68) xor lfsr_b(83);
                         t3 := lfsr_c(65) xor lfsr_c(110);
