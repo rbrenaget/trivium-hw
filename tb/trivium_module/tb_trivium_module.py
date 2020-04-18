@@ -37,7 +37,7 @@ def swap32(x):
 
 OUTPUT_SIZE = 32
 DBG_OUTPUT_SIZE = 32
-N_BLOCKS = 2
+N_BLOCKS = 32
 
 get_bin = lambda x, n: format(x, 'b').zfill(n)
 get_hex = lambda x: hex(x)[2:].upper()
@@ -76,7 +76,7 @@ def test_trivium_module(dut):
 
     dut.TRV_START <= 1
     dut.TRV_INTERRUPT <= 0
-    dut.TRV_STOP <= 0
+    dut.TRV_N_BLOCKS <= N_BLOCKS
     dut.TRV_KEY <= BinaryValue(key_bin, bigEndian=True)
     dut.TRV_IV <= BinaryValue(iv_bin, bigEndian=True)
 
@@ -85,9 +85,9 @@ def test_trivium_module(dut):
     dut._log.info('\t [+] Loaded')
     dut.TRV_START <= 0
 
-    dut._log.info('\t [*] Process initialization')
-    yield RisingEdge(dut.initialized)
-    dut._log.info('\t [+] Initialized')
+    # dut._log.info('\t [*] Process initialization')
+    yield RisingEdge(dut.ready)
+    # dut._log.info('\t [+] Initialized')
 
     yield Timer(100, units='ns')
 
@@ -97,8 +97,6 @@ def test_trivium_module(dut):
 
     dut.TRV_INTERRUPT <= 0
 
-    yield Timer(100, units='ns')
-
-    dut.TRV_STOP <= 1
+    yield RisingEdge(dut.TRV_DONE)
 
     yield Timer(200, units='ns')
