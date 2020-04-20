@@ -152,7 +152,7 @@ begin
                 lfsr_c := (others => '0');
                 loaded := '0';
             else
-                if (load = '1' and loaded ='0') then
+                if (load = '1' and loaded = '0') then
                     lfsr_a := (92 downto 80 => '0') & swap_endianness(TRV_KEY);
                     lfsr_b := (83 downto 80 => '0') & swap_endianness(TRV_IV);
                     lfsr_c := "111" & (107 downto 0 => '0');
@@ -160,7 +160,6 @@ begin
                 end if;
 
                 if (run_engine = '1') then
-                    loaded := '0';
                     for i in 0 to block_size-1 loop
                         t1 := lfsr_a(65) xor lfsr_a(92);
                         t2 := lfsr_b(68) xor lfsr_b(83);
@@ -176,6 +175,10 @@ begin
                         lfsr_b(83 downto 0) := lfsr_b(82 downto 0) & t1;
                         lfsr_c(110 downto 0) := lfsr_c(109 downto 0) & t2;
                     end loop;
+
+                    if (done = '1') then
+                        loaded := '0';
+                    end if;
                 end if;
             end if;
         end if;
