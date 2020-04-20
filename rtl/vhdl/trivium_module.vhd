@@ -68,7 +68,6 @@ architecture implementation of trivium_module is
     signal current_state : state := S_IDLE;
     signal cnt : natural := 0;
     signal load : std_logic := '0';
-    signal loaded : std_logic := '0';
     signal initialized : std_logic := '0';
     signal run_engine : std_logic := '0';
     signal ready : std_logic := '0';
@@ -83,7 +82,7 @@ begin
     TRV_KEYSTREAM <= output;
     TRV_DONE <= done;
 
-    load <= '1' when (current_state = S_INIT and loaded = '0') else '0';
+    load <= '1' when (current_state = S_INIT) else '0';
     run_engine <= '1' when (current_state = S_INIT or current_state = S_GENERATE) else '0';
     ready <= '1' when (current_state = S_GENERATE) else '0';
     done <= '1' when (current_state = S_DONE) else '0';
@@ -101,6 +100,7 @@ begin
                 case (current_state) is
                     when S_IDLE =>
                         if (TRV_INIT_START = '1' and TRV_INTERRUPT = '0') then
+                            initialized <= '0';
                             current_state <= S_INIT;
                         end if;
                         if (TRV_START = '1' and TRV_INTERRUPT = '0') then
@@ -116,7 +116,7 @@ begin
                             cnt <= cnt + block_size;
                         end if;
                     when S_GENERATE =>
-                        if (cnt = n_bits-block_size) then
+                        if (cnt >= n_bits-block_size) then
                             current_state <= S_DONE;
                             cnt <= 0;
                         elsif (TRV_INTERRUPT = '1') then
@@ -143,22 +143,24 @@ begin
         variable t1 : std_logic := '0';
         variable t2 : std_logic := '0';
         variable t3 : std_logic := '0';
+        variable loaded : std_logic := '0';
     begin
         if (rising_edge(TRV_CLK)) then
             if (TRV_RST = '1') then
                 lfsr_a := (others => '0');
                 lfsr_b := (others => '0');
                 lfsr_c := (others => '0');
-                loaded <= '0';
+                loaded := '0';
             else
-                if (load = '1') then
+                if (load = '1' and loaded ='0') then
                     lfsr_a := (92 downto 80 => '0') & swap_endianness(TRV_KEY);
                     lfsr_b := (83 downto 80 => '0') & swap_endianness(TRV_IV);
                     lfsr_c := "111" & (107 downto 0 => '0');
-                    loaded <= '1';
+                    loaded := '1';
                 end if;
 
                 if (run_engine = '1') then
+                    loaded := '0';
                     for i in 0 to block_size-1 loop
                         t1 := lfsr_a(65) xor lfsr_a(92);
                         t2 := lfsr_b(68) xor lfsr_b(83);

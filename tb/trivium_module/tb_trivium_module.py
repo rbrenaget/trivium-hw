@@ -43,8 +43,10 @@ get_bin = lambda x, n: format(x, 'b').zfill(n)
 get_hex = lambda x: hex(x)[2:].upper()
 
 # Set 6, vector# 3:
-key = [0xfa, 0xa7, 0x54, 0x01, 0xae, 0x5b, 0x08, 0xb5, 0x62, 0x0f]
-iv = [0xc7, 0x60, 0xf9, 0x92, 0x2b, 0xc4, 0x5d, 0xf6, 0x8f, 0x28]
+# key = [0xfa, 0xa7, 0x54, 0x01, 0xae, 0x5b, 0x08, 0xb5, 0x62, 0x0f]
+# iv = [0xc7, 0x60, 0xf9, 0x92, 0x2b, 0xc4, 0x5d, 0xf6, 0x8f, 0x28]
+key = [0x0]*10
+iv = [0x0]*10
 
 key_bin = ''.join([get_bin(i, 8) for i in key[::-1]])
 iv_bin = ''.join([get_bin(i, 8) for i in iv[::-1]])
@@ -77,13 +79,11 @@ def test_trivium_module(dut):
     dut.TRV_INIT_START <= 1
     dut.TRV_START <= 0
     dut.TRV_INTERRUPT <= 0
-    dut.TRV_N_BLOCKS <= N_BLOCKS
+    dut.TRV_N_BLOCKS <= BinaryValue(N_BLOCKS, bigEndian=False)
     dut.TRV_KEY <= BinaryValue(key_bin, bigEndian=True)
     dut.TRV_IV <= BinaryValue(iv_bin, bigEndian=True)
 
-    dut._log.info('\t [*] Process key & iv loading')
-    yield RisingEdge(dut.loaded)
-    dut._log.info('\t [+] Loaded')
+    yield Timer(10, units='ns')
     dut.TRV_INIT_START <= 0
 
     dut._log.info('\t [*] Process initialization')
