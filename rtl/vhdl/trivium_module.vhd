@@ -103,7 +103,7 @@ begin
                             initialized <= '0';
                             current_state <= S_INIT;
                         end if;
-                        if (TRV_START = '1' and TRV_INTERRUPT = '0') then
+                        if (TRV_START = '1' and TRV_INTERRUPT = '0' and initialized = '1') then
                             current_state <= S_GENERATE;
                         end if;
                     when S_INIT =>
@@ -129,8 +129,15 @@ begin
                             current_state <= S_GENERATE;
                         end if;
                     when S_DONE =>
-                        current_state <= S_IDLE;
                         n_bits := 0;
+                        if (TRV_INIT_START = '1' and TRV_INTERRUPT = '0') then
+                            initialized <= '0';
+                            current_state <= S_INIT;
+                        end if;
+                        if (TRV_START = '1' and TRV_INTERRUPT = '0') then
+                            current_state <= S_GENERATE;
+                            n_bits := block_size * to_integer(unsigned(TRV_N_BLOCKS));
+                        end if;
                 end case;
             end if;
         end if;
@@ -175,10 +182,10 @@ begin
                         lfsr_b(83 downto 0) := lfsr_b(82 downto 0) & t1;
                         lfsr_c(110 downto 0) := lfsr_c(109 downto 0) & t2;
                     end loop;
+                end if;
 
-                    if (done = '1') then
-                        loaded := '0';
-                    end if;
+                if (done = '1') then
+                    loaded := '0';
                 end if;
             end if;
         end if;
@@ -189,8 +196,6 @@ begin
         if (rising_edge(TRV_CLK)) then
             if (TRV_RST = '1') then
                 delay_ready <= '0';
-            elsif (TRV_INTERRUPT = '1') then
-                
             elsif (ready = '1') then
                 delay_ready <= ready;
             else 
