@@ -71,20 +71,20 @@ architecture implementation of trivium_module is
     signal initialized : std_logic := '0';
     signal run_engine : std_logic := '0';
     signal ready : std_logic := '0';
-    signal delay_ready : std_logic := '0';
+    signal output_ready : std_logic := '0';
     signal output : std_logic_vector(C_BLOCK_SIZE-1 downto 0);
     signal done : std_logic := '0';
 
 begin
 
     TRV_INIT_DONE <= initialized;
-    TRV_READY <= delay_ready when (TRV_INTERRUPT = '0') else ready;
+    TRV_READY <= ready;
     TRV_KEYSTREAM <= output;
     TRV_DONE <= done;
 
     load <= '1' when (current_state = S_INIT) else '0';
     run_engine <= '1' when (current_state = S_INIT or current_state = S_GENERATE) else '0';
-    ready <= '1' when (current_state = S_GENERATE) else '0';
+    ready <= '1' when (done = '0' and current_state /= S_INTERRUPT and current_state = S_GENERATE and output_ready = '1') else '0';
     done <= '1' when (current_state = S_DONE) else '0';
 
     process (TRV_CLK) is
@@ -150,6 +150,7 @@ begin
         variable t1 : std_logic := '0';
         variable t2 : std_logic := '0';
         variable t3 : std_logic := '0';
+        variable zi : std_logic_vector(C_BLOCK_SIZE-1 downto 0) := (others => '0');
         variable loaded : std_logic := '0';
     begin
         if (rising_edge(TRV_CLK)) then
@@ -172,7 +173,7 @@ begin
                         t2 := lfsr_b(68) xor lfsr_b(83);
                         t3 := lfsr_c(65) xor lfsr_c(110);
     
-                        output(i) <= t1 xor t2 xor t3;
+                        zi(i) := t1 xor t2 xor t3;
     
                         t1 := t1 xor (lfsr_a(90) and lfsr_a(91)) xor lfsr_b(77);
                         t2 := t2 xor (lfsr_b(81) and lfsr_b(82)) xor lfsr_c(86);
@@ -182,24 +183,17 @@ begin
                         lfsr_b(83 downto 0) := lfsr_b(82 downto 0) & t1;
                         lfsr_c(110 downto 0) := lfsr_c(109 downto 0) & t2;
                     end loop;
+
+                    if (initialized = '1') then
+                        output <= zi;
+                        output_ready <= '1';
+                    end if;
                 end if;
 
                 if (done = '1') then
                     loaded := '0';
+                    output_ready <= '0';
                 end if;
-            end if;
-        end if;
-    end process;
-
-    process (TRV_CLK) is
-    begin
-        if (rising_edge(TRV_CLK)) then
-            if (TRV_RST = '1') then
-                delay_ready <= '0';
-            elsif (ready = '1') then
-                delay_ready <= ready;
-            else 
-                delay_ready <= '0';
             end if;
         end if;
     end process;
