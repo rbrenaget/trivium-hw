@@ -103,7 +103,7 @@ begin
                             current_state <= S_INIT;
                         elsif (TRV_START = '1' and initialized = '1') then
                             current_state <= S_GENERATE;
-                            n_bits := (block_size * (to_integer(unsigned(TRV_N_BLOCKS)) - 2));
+                            n_bits := block_size * (to_integer(unsigned(TRV_N_BLOCKS) - 1));
                         end if;
                     when S_INIT =>
                         if (cnt = (1152-block_size)) then
