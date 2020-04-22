@@ -27,7 +27,6 @@ entity trivium_module is
         TRV_RST        : in std_logic;
         TRV_INIT_START : in std_logic;
         TRV_START      : in std_logic;
-        TRV_INTERRUPT  : in std_logic;
         TRV_N_BLOCKS   : in std_logic_vector(31 downto 0);
         TRV_KEY        : in std_logic_vector(79 downto 0);
         TRV_IV         : in std_logic_vector(79 downto 0);
@@ -63,7 +62,7 @@ architecture implementation of trivium_module is
 
     constant block_size : integer range 1 to 64 := C_BLOCK_SIZE;
 
-    type state is (S_IDLE, S_INIT, S_GENERATE, S_INTERRUPT, S_DONE);
+    type state is (S_IDLE, S_INIT, S_GENERATE, S_DONE);
 
     signal current_state : state := S_IDLE;
     signal cnt : natural := 0;
@@ -84,7 +83,7 @@ begin
 
     load <= '1' when (current_state = S_INIT) else '0';
     run_engine <= '1' when (current_state = S_INIT or current_state = S_GENERATE) else '0';
-    ready <= '1' when (done = '0' and current_state /= S_INTERRUPT and current_state = S_GENERATE and output_ready = '1') else '0';
+    ready <= '1' when (done = '1' or (current_state = S_GENERATE and output_ready = '1')) else '0';
     done <= '1' when (current_state = S_DONE) else '0';
 
     process (TRV_CLK) is
@@ -99,45 +98,31 @@ begin
             else
                 case (current_state) is
                     when S_IDLE =>
-                        if (TRV_INIT_START = '1' and TRV_INTERRUPT = '0') then
+                        if (TRV_INIT_START = '1') then
                             initialized <= '0';
                             current_state <= S_INIT;
-                        end if;
-                        if (TRV_START = '1' and TRV_INTERRUPT = '0' and initialized = '1') then
+                        elsif (TRV_START = '1' and initialized = '1') then
                             current_state <= S_GENERATE;
+                            n_bits := (block_size * (to_integer(unsigned(TRV_N_BLOCKS)) - 2));
                         end if;
                     when S_INIT =>
                         if (cnt = (1152-block_size)) then
                             current_state <= S_IDLE;
                             cnt <= 0;
                             initialized <= '1';
-                            n_bits := block_size * to_integer(unsigned(TRV_N_BLOCKS));
                         else
                             cnt <= cnt + block_size;
                         end if;
                     when S_GENERATE =>
-                        if (cnt >= n_bits-block_size) then
+                        if (cnt = n_bits) then
                             current_state <= S_DONE;
                             cnt <= 0;
-                        elsif (TRV_INTERRUPT = '1') then
-                            current_state <= S_INTERRUPT;
                         else
                             cnt <= cnt + block_size;
                         end if;
-                    when S_INTERRUPT =>
-                        if (TRV_INTERRUPT = '0') then
-                            current_state <= S_GENERATE;
-                        end if;
                     when S_DONE =>
                         n_bits := 0;
-                        if (TRV_INIT_START = '1' and TRV_INTERRUPT = '0') then
-                            initialized <= '0';
-                            current_state <= S_INIT;
-                        end if;
-                        if (TRV_START = '1' and TRV_INTERRUPT = '0') then
-                            current_state <= S_GENERATE;
-                            n_bits := block_size * to_integer(unsigned(TRV_N_BLOCKS));
-                        end if;
+                        current_state <= S_IDLE;
                 end case;
             end if;
         end if;
