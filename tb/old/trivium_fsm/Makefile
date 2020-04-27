@@ -2,10 +2,10 @@ TOPLEVEL_LANG ?= vhdl
 
 PWD=$(shell pwd)
 
-TOPLEVEL := trivium_engine
+TOPLEVEL := trivium_fsm
 MODULE := tb_$(TOPLEVEL)
 
-VHDL_SOURCES=$(PWD)/../../rtl/vhdl/$(TOPLEVEL).vhd
+VHDL_SOURCES=$(PWD)/../../rtl/vhdl/old/$(TOPLEVEL).vhd
 
 SIM=ghdl
 SIM_ARGS=--vcd=tb_$(TOPLEVEL).vcd

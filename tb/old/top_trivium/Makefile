@@ -5,10 +5,10 @@ PWD=$(shell pwd)
 TOPLEVEL := top_trivium
 MODULE := tb_$(TOPLEVEL)
 
-VHDL_SOURCES=$(PWD)/../../rtl/vhdl/trivium_package.vhd \
-			 $(PWD)/../../rtl/vhdl/trivium_fsm.vhd \
-			 $(PWD)/../../rtl/vhdl/trivium_engine.vhd   \
-			 $(PWD)/../../rtl/vhdl/$(TOPLEVEL).vhd
+VHDL_SOURCES=$(PWD)/../../rtl/vhdl/old/trivium_package.vhd \
+			 $(PWD)/../../rtl/vhdl/old/trivium_fsm.vhd \
+			 $(PWD)/../../rtl/vhdl/old/trivium_engine.vhd   \
+			 $(PWD)/../../rtl/vhdl/old/$(TOPLEVEL).vhd
 
 SIM=ghdl
 SIM_ARGS=--vcd=tb_$(TOPLEVEL).vcd
