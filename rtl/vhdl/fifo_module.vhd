@@ -45,7 +45,7 @@ entity fifo_module is
     -- FIFO Read Interface
     i_rd_en   : in  std_logic;
     o_rd_data : out std_logic_vector(g_WIDTH-1 downto 0);
-    o_empty   : out std_logic
+    o_empty   : out std_logic;
 
     -- FIFO Count
     o_fifo_cnt : out std_logic_vector(31 downto 0)
