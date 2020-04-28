@@ -293,6 +293,9 @@ trivium_module_inst : trivium_module
                             current_state <= INIT;
                             initialized := '0';
                             trv_started <= '0';
+                        elsif (trv_config(1) = '0') then
+                            current_state <= IDLE;
+                            trv_started <= '0';
                         elsif (C_M00_AXIS_FIFO_DEPTH - unsigned(fifo_cnt) >= unsigned(trv_n_blocks)) then
                             current_state <= START;
                         end if;
