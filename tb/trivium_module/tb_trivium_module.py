@@ -37,7 +37,7 @@ def swap32(x):
 
 OUTPUT_SIZE = 32
 DBG_OUTPUT_SIZE = 32
-N_BLOCKS = 32
+N_BLOCKS = 64
 
 get_bin = lambda x, n: format(x, 'b').zfill(n)
 get_hex = lambda x: hex(x)[2:].upper()
@@ -99,8 +99,16 @@ def test_trivium_module(dut):
 
     yield Timer(200, units='ns')
 
-    dut.TRV_START <= 1
+    dut.TRV_INIT_START <= 1
     yield Timer(10, units='ns')
+    dut.TRV_INIT_START <= 0
+
+    dut._log.info('\t [*] Process initialization')
+    yield RisingEdge(dut.TRV_INIT_DONE)
+    dut._log.info('\t [+] Initialized')
+
+    dut.TRV_START <= 1
+    yield Timer(20, units='ns')
     dut.TRV_START <= 0
 
     yield RisingEdge(dut.TRV_DONE)
